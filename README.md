@@ -11,7 +11,7 @@
 ### Team Members
 - Team Lead: [Nirajan K Ajay] - [College of engineering poonjar]
 - Member 2: [Adithyan KP] - [College of engineering poonjar]
-- Member 3: [Name] - [College]
+  
 
 ### Project Description
 [For when you want to feel accomplished doing absolutely nothing.
@@ -28,8 +28,7 @@ A masterpiece of wasted clicks and zero rewards]
 ### Technologies/Components Used
 For Software:
 - [HTML,CSS,JAVAS SCRIPT]
-- [NONE]
-- [NONE]
+
 - [VS STUDIO]
 
 For Hardware:
