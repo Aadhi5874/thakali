@@ -49,14 +49,17 @@ open in browser
 For Software:
 
 # Screenshots (Add at least 3)
-![Screenshot1](Add screenshot 1 here with proper name)
-*Add caption explaining what this shows*
+![Screenshot1](<img width="1905" height="887" alt="Screenshot 2025-08-09 161725" src="https://github.com/user-attachments/assets/0d4906cf-ffb2-4990-9cb1-3be10f7a2632" />
+)
+*select the options*
 
-![Screenshot2](Add screenshot 2 here with proper name)
-*Add caption explaining what this shows*
+![Screenshot2](<img width="1898" height="905" alt="Screenshot 2025-08-09 161823" src="https://github.com/user-attachments/assets/7e25bde8-b7f7-4722-9888-7aaed52918a9" />
+)
+*playing*
 
-![Screenshot3](Add screenshot 3 here with proper name)
-*Add caption explaining what this shows*
+![Screenshot3](<img width="1873" height="889" alt="Screenshot 2025-08-09 161841" src="https://github.com/user-attachments/assets/490ea089-db89-4eb0-a12d-84fdb8bae639" />
+)
+*can be paused and can start over*
 
 # Diagrams
 ![Workflow](Add your workflow/architecture diagram here)
