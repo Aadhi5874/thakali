@@ -5,30 +5,32 @@
 
 
 ## Basic Details
-### Team Name: [Name]
+### Team Name: [THAKALI🍅]
 
 
 ### Team Members
-- Team Lead: [Name] - [College]
-- Member 2: [Name] - [College]
+- Team Lead: [Nirajan K Ajay] - [College of engineering poonjar]
+- Member 2: [Adithyan KP] - [College of engineering poonjar]
 - Member 3: [Name] - [College]
 
 ### Project Description
-[2-3 lines about what your project does]
+[For when you want to feel accomplished doing absolutely nothing.
+
+A masterpiece of wasted clicks and zero rewards]
 
 ### The Problem (that doesn't exist)
-[What ridiculous problem are you solving?]
+[Why catch the character? Nobody knows—there’s no real reason]
 
 ### The Solution (that nobody asked for)
-[How are you solving it? Keep it fun!]
+[The solution to a problem that doesn’t exist: just keep clicking! Or don’t. Either way, nothing changes]
 
 ## Technical Details
 ### Technologies/Components Used
 For Software:
-- [Languages used]
-- [Frameworks used]
-- [Libraries used]
-- [Tools used]
+- [HTML,CSS,JAVAS SCRIPT]
+- [NONE]
+- [NONE]
+- [VS STUDIO]
 
 For Hardware:
 - [List main components]
@@ -36,7 +38,8 @@ For Hardware:
 - [List tools required]
 
 ### Implementation
-For Software:
+For Software:Download or copy file
+open in browser
 # Installation
 [commands]
 
