@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Catch the Crazy Character!</title>
+  <style>
+    body {
+      font-family: Comic Sans MS, cursive, sans-serif;
+      margin: 0;
+      overflow: hidden;
+      text-align: center;
+      padding-top: 50px;
+      transition: background 1s ease;
+      background: linear-gradient(-45deg, #ff9a9e, #fad0c4, #fbc2eb, #a6c1ee);
+      background-size: 400% 400%;
+      animation: gradientMove 10s ease infinite;
+    }
+    @keyframes gradientMove {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    h1 {
+      color: #ff1493;
+      text-shadow: 2px 2px #ffffff;
+    }
+    #crazyButton {
+      font-size: 40px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      position: absolute;
+      display: none;
+      animation: bounce 0.5s infinite alternate;
+    }
+    @keyframes bounce {
+      from { transform: translateY(0); }
+      to { transform: translateY(-10px); }
+    }
+    #score, #timer {
+      font-size: 24px;
+      color: #fff;
+      margin-top: 20px;
+      text-shadow: 1px 1px #333;
+    }
+    .game-button {
+      padding: 10px 20px;
+      font-size: 18px;
+      background-color: #00bfff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin: 10px;
+    }
+    #stopButton {
+      background-color: #ff4c4c;
+    }
+    .controls {
+      margin: 20px auto;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.8);
+      width: 80%;
+      max-width: 500px;
+      border-radius: 10px;
+    }
+    select {
+      padding: 8px;
+      font-size: 16px;
+      margin: 8px;
+    }
+    /* Popup styles */
+    #endPopup {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      border: 4px solid #333;
+      border-radius: 20px;
+      padding: 30px;
+      z-index: 9999;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+      font-size: 24px;
+      max-width: 90%;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🎯 Catch the Crazy Character!</h1>
+
+  <!-- Customization Menu -->
+  <div class="controls" id="customMenu">
+    <label>🎵 Music:
+      <select id="musicSelect">
+        <option value="https://www.bensound.com/bensound-music/bensound-funnysong.mp3">Funny</option>
+        <option value="https://www.bensound.com/bensound-music/bensound-buddy.mp3">Buddy</option>
+        <option value="none">None</option>
+      </select>
+    </label>
+
+    <label>🌈 Background:
+      <select id="bgSelect">
+        <option value="gradient">Gradient</option>
+        <option value="#ffeb3b">Yellow</option>
+        <option value="#90ee90">Light Green</option>
+        <option value="#add8e6">Light Blue</option>
+      </select>
+    </label>
+
+    <label>🐸 Character:
+      <select id="charSelect">
+        <option value="🐸">Frog</option>
+        <option value="👻">Ghost</option>
+        <option value="🐱">Cat</option>
+        <option value="🤡">Clown</option>
+        <option value="🐵">Monkey</option>
+      </select>
+    </label>
+
+    <label>⏱ Time:
+      <select id="timeSelect">
+        <option value="30">30s</option>
+        <option value="45">45s</option>
+        <option value="60">60s</option>
+      </select>
+    </label>
+  </div>
+
+  <!-- Score and Timer -->
+  <div id="score">Score: 0</div>
+  <div id="timer">⏱ Time Left: 30s</div>
+
+  <!-- Buttons -->
+  <button id="startButton" class="game-button">▶️ Start Game</button>
+  <button id="stopButton" class="game-button" style="display:none;">🛑 Stop Game</button>
+  <button id="restartButton" class="game-button" style="display:none;">🔁 Restart Game</button>
+
+  <!-- Game Button -->
+  <button id="crazyButton">🐸</button>
+
+  <!-- Sounds -->
+  <audio id="clickSound" src="https://www.fesliyanstudios.com/play-mp3/387" preload="auto"></audio>
+  <audio id="bgMusic" preload="auto" loop></audio>
+  <audio id="winSound" src="https://www.fesliyanstudios.com/play-mp3/6525" preload="auto"></audio>
+  <audio id="loseSound" src="https://www.fesliyanstudios.com/play-mp3/6530" preload="auto"></audio>
+
+  <!-- End Game Popup -->
+  <div id="endPopup">
+    <div id="popupMessage"></div>
+    <button onclick="closePopup()" class="game-button" style="margin-top: 20px;">OK</button>
+  </div>
+
+  <script>
+    const button = document.getElementById("crazyButton");
+    const startButton = document.getElementById("startButton");
+    const stopButton = document.getElementById("stopButton");
+    const restartButton = document.getElementById("restartButton");
+    const scoreDisplay = document.getElementById("score");
+    const timerDisplay = document.getElementById("timer");
+    const clickSound = document.getElementById("clickSound");
+    const bgMusic = document.getElementById("bgMusic");
+    const winSound = document.getElementById("winSound");
+    const loseSound = document.getElementById("loseSound");
+    const customMenu = document.getElementById("customMenu");
+    const popup = document.getElementById("endPopup");
+    const popupMessage = document.getElementById("popupMessage");
+
+    const musicSelect = document.getElementById("musicSelect");
+    const bgSelect = document.getElementById("bgSelect");
+    const charSelect = document.getElementById("charSelect");
+    const timeSelect = document.getElementById("timeSelect");
+
+    let score = 0;
+    let timeLeft = 30;
+    let gameActive = false;
+    let timerInterval;
+    let targetScore = 10; // Fixed target score
+
+    function moveButton() {
+      const maxX = window.innerWidth - button.offsetWidth;
+      const maxY = window.innerHeight - button.offsetHeight;
+      const randomX = Math.floor(Math.random() * maxX);
+      const randomY = Math.floor(Math.random() * maxY);
+      button.style.left = randomX + "px";
+      button.style.top = randomY + "px";
+    }
+
+    function updateUI() {
+      startButton.style.display = gameActive ? "none" : "inline-block";
+      stopButton.style.display = gameActive ? "inline-block" : "none";
+      restartButton.style.display = gameActive ? "none" : "inline-block";
+      button.style.display = gameActive ? "inline-block" : "none";
+      customMenu.style.display = gameActive ? "none" : "block";
+    }
+
+    function setBackground(choice) {
+      if (choice === "gradient") {
+        document.body.style.background = "linear-gradient(-45deg, #ff9a9e, #fad0c4, #fbc2eb, #a6c1ee)";
+        document.body.style.animation = "gradientMove 10s ease infinite";
+        document.body.style.backgroundSize = "400% 400%";
+      } else {
+        document.body.style.background = choice;
+        document.body.style.animation = "none";
+      }
+    }
+
+    function endGame(forced = false) {
+      clearInterval(timerInterval);
+      gameActive = false;
+      updateUI();
+      timerDisplay.textContent = forced ? "🛑 Stopped!" : "⏱ Time's up!";
+      bgMusic.pause();
+
+      if (!forced) {
+        if (score >= targetScore) {
+          popupMessage.innerHTML = `🏆 <strong>You Win!</strong><br>🎯 Score: ${score}<br>🎯 Target: ${targetScore}`;
+          winSound.play();
+        } else {
+          popupMessage.innerHTML = `😢 <strong>You Lose!</strong><br>🎯 Score: ${score}<br>🎯 Target: ${targetScore}`;
+          loseSound.play();
+        }
+        popup.style.display = "block";
+      } else {
+        alert("🛑 Game stopped. Your score was: " + score);
+      }
+    }
+
+    function closePopup() {
+      popup.style.display = "none";
+    }
+
+    function startGame() {
+      const selectedMusic = musicSelect.value;
+      const selectedBg = bgSelect.value;
+      const selectedChar = charSelect.value;
+      timeLeft = parseInt(timeSelect.value);
+
+      // Fixed target score:
+      targetScore = 10;
+
+      if (selectedMusic !== "none") {
+        bgMusic.src = selectedMusic;
+        bgMusic.currentTime = 0;
+        bgMusic.play();
+      } else {
+        bgMusic.pause();
+      }
+
+      setBackground(selectedBg);
+      button.textContent = selectedChar;
+
+      score = 0;
+      gameActive = true;
+      scoreDisplay.textContent = "Score: 0";
+      timerDisplay.textContent = "⏱ Time Left: " + timeLeft + "s";
+      button.style.fontSize = "40px";
+      moveButton();
+      updateUI();
+
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        if (timeLeft <= 0) {
+          endGame(false);
+        } else {
+          timeLeft--;
+          timerDisplay.textContent = "⏱ Time Left: " + timeLeft + "s";
+        }
+      }, 1000);
+    }
+
+    // Event Listeners
+    button.addEventListener("mouseover", () => {
+      if (gameActive) moveButton();
+    });
+
+    button.addEventListener("click", () => {
+      if (!gameActive) return;
+      score++;
+      clickSound.currentTime = 0;
+      clickSound.play();
+      scoreDisplay.textContent = "Score: " + score;
+      const newSize = Math.max(20, 40 - score);
+      button.style.fontSize = newSize + "px";
+    });
+
+    startButton.addEventListener("click", startGame);
+    restartButton.addEventListener("click", startGame);
+    stopButton.addEventListener("click", () => endGame(true));
+  </script>
+</body>
+</html>
