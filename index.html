@@ -53,8 +53,11 @@
       cursor: pointer;
       margin: 10px;
     }
-    #stopButton {
-      background-color: #ff4c4c;
+    #pauseButton {
+      background-color: #ff9800;
+    }
+    #continueButton {
+      background-color: #4caf50;
     }
     .controls {
       margin: 20px auto;
@@ -69,7 +72,6 @@
       font-size: 16px;
       margin: 8px;
     }
-    /* Popup styles */
     #endPopup {
       display: none;
       position: fixed;
@@ -86,13 +88,28 @@
       max-width: 90%;
       text-align: center;
     }
+    #highScoreBtn {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      background-color: #ff4081;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      z-index: 10000;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    }
   </style>
 </head>
 <body>
 
+  <button id="highScoreBtn" title="Show High Score">🏆 High Score</button>
+
   <h1>🎯 Catch the Crazy Character!</h1>
 
-  <!-- Customization Menu -->
   <div class="controls" id="customMenu">
     <label>🎵 Music:
       <select id="musicSelect">
@@ -101,7 +118,6 @@
         <option value="none">None</option>
       </select>
     </label>
-
     <label>🌈 Background:
       <select id="bgSelect">
         <option value="gradient">Gradient</option>
@@ -110,7 +126,6 @@
         <option value="#add8e6">Light Blue</option>
       </select>
     </label>
-
     <label>🐸 Character:
       <select id="charSelect">
         <option value="🐸">Frog</option>
@@ -120,7 +135,6 @@
         <option value="🐵">Monkey</option>
       </select>
     </label>
-
     <label>⏱ Time:
       <select id="timeSelect">
         <option value="30">30s</option>
@@ -130,25 +144,21 @@
     </label>
   </div>
 
-  <!-- Score and Timer -->
   <div id="score">Score: 0</div>
   <div id="timer">⏱ Time Left: 30s</div>
 
-  <!-- Buttons -->
   <button id="startButton" class="game-button">▶️ Start Game</button>
-  <button id="stopButton" class="game-button" style="display:none;">🛑 Stop Game</button>
+  <button id="pauseButton" class="game-button" style="display:none;">⏸️ Stop</button>
+  <button id="continueButton" class="game-button" style="display:none;">▶️ Continue</button>
   <button id="restartButton" class="game-button" style="display:none;">🔁 Restart Game</button>
 
-  <!-- Game Button -->
   <button id="crazyButton">🐸</button>
 
-  <!-- Sounds -->
   <audio id="clickSound" src="https://www.fesliyanstudios.com/play-mp3/387" preload="auto"></audio>
   <audio id="bgMusic" preload="auto" loop></audio>
   <audio id="winSound" src="https://www.fesliyanstudios.com/play-mp3/6525" preload="auto"></audio>
   <audio id="loseSound" src="https://www.fesliyanstudios.com/play-mp3/6530" preload="auto"></audio>
 
-  <!-- End Game Popup -->
   <div id="endPopup">
     <div id="popupMessage"></div>
     <button onclick="closePopup()" class="game-button" style="margin-top: 20px;">OK</button>
@@ -157,7 +167,8 @@
   <script>
     const button = document.getElementById("crazyButton");
     const startButton = document.getElementById("startButton");
-    const stopButton = document.getElementById("stopButton");
+    const pauseButton = document.getElementById("pauseButton");
+    const continueButton = document.getElementById("continueButton");
     const restartButton = document.getElementById("restartButton");
     const scoreDisplay = document.getElementById("score");
     const timerDisplay = document.getElementById("timer");
@@ -168,6 +179,7 @@
     const customMenu = document.getElementById("customMenu");
     const popup = document.getElementById("endPopup");
     const popupMessage = document.getElementById("popupMessage");
+    const highScoreBtn = document.getElementById("highScoreBtn");
 
     const musicSelect = document.getElementById("musicSelect");
     const bgSelect = document.getElementById("bgSelect");
@@ -176,24 +188,41 @@
 
     let score = 0;
     let timeLeft = 30;
+    let targetScore = 10;
     let gameActive = false;
+    let paused = false;
     let timerInterval;
-    let targetScore = 10; // Fixed target score
+
+    // Retrieve high score from localStorage or default 0
+    function getHighScore() {
+      return parseInt(localStorage.getItem("highScore") || "0", 10);
+    }
+
+    // Save high score if current is higher
+    function saveHighScore(newScore) {
+      const currentHigh = getHighScore();
+      if (newScore > currentHigh) {
+        localStorage.setItem("highScore", newScore);
+      }
+    }
 
     function moveButton() {
-      const maxX = window.innerWidth - button.offsetWidth;
-      const maxY = window.innerHeight - button.offsetHeight;
-      const randomX = Math.floor(Math.random() * maxX);
-      const randomY = Math.floor(Math.random() * maxY);
-      button.style.left = randomX + "px";
-      button.style.top = randomY + "px";
+      if (!paused) {
+        const maxX = window.innerWidth - button.offsetWidth;
+        const maxY = window.innerHeight - button.offsetHeight;
+        const randomX = Math.floor(Math.random() * maxX);
+        const randomY = Math.floor(Math.random() * maxY);
+        button.style.left = randomX + "px";
+        button.style.top = randomY + "px";
+      }
     }
 
     function updateUI() {
       startButton.style.display = gameActive ? "none" : "inline-block";
-      stopButton.style.display = gameActive ? "inline-block" : "none";
+      pauseButton.style.display = gameActive && !paused ? "inline-block" : "none";
+      continueButton.style.display = paused ? "inline-block" : "none";
       restartButton.style.display = gameActive ? "none" : "inline-block";
-      button.style.display = gameActive ? "inline-block" : "none";
+      button.style.display = gameActive && !paused ? "inline-block" : "none";
       customMenu.style.display = gameActive ? "none" : "block";
     }
 
@@ -211,9 +240,11 @@
     function endGame(forced = false) {
       clearInterval(timerInterval);
       gameActive = false;
+      paused = false;
       updateUI();
-      timerDisplay.textContent = forced ? "🛑 Stopped!" : "⏱ Time's up!";
       bgMusic.pause();
+
+      saveHighScore(score); // Save high score here
 
       if (!forced) {
         if (score >= targetScore) {
@@ -224,8 +255,6 @@
           loseSound.play();
         }
         popup.style.display = "block";
-      } else {
-        alert("🛑 Game stopped. Your score was: " + score);
       }
     }
 
@@ -239,8 +268,10 @@
       const selectedChar = charSelect.value;
       timeLeft = parseInt(timeSelect.value);
 
-      // Fixed target score:
       targetScore = 10;
+      score = 0;
+      gameActive = true;
+      paused = false;
 
       if (selectedMusic !== "none") {
         bgMusic.src = selectedMusic;
@@ -252,44 +283,73 @@
 
       setBackground(selectedBg);
       button.textContent = selectedChar;
-
-      score = 0;
-      gameActive = true;
       scoreDisplay.textContent = "Score: 0";
       timerDisplay.textContent = "⏱ Time Left: " + timeLeft + "s";
       button.style.fontSize = "40px";
       moveButton();
+
+      pauseButton.style.display = "inline-block";
+      restartButton.style.display = "inline-block";
+      continueButton.style.display = "none";
       updateUI();
 
       clearInterval(timerInterval);
       timerInterval = setInterval(() => {
-        if (timeLeft <= 0) {
-          endGame(false);
-        } else {
+        if (!paused && timeLeft > 0) {
           timeLeft--;
           timerDisplay.textContent = "⏱ Time Left: " + timeLeft + "s";
+          if (timeLeft === 0) endGame(false);
         }
       }, 1000);
     }
 
     // Event Listeners
     button.addEventListener("mouseover", () => {
-      if (gameActive) moveButton();
+      if (gameActive && !paused) moveButton();
     });
 
     button.addEventListener("click", () => {
-      if (!gameActive) return;
+      if (!gameActive || paused) return;
       score++;
       clickSound.currentTime = 0;
       clickSound.play();
       scoreDisplay.textContent = "Score: " + score;
       const newSize = Math.max(20, 40 - score);
       button.style.fontSize = newSize + "px";
+      moveButton();
     });
 
     startButton.addEventListener("click", startGame);
+
     restartButton.addEventListener("click", startGame);
-    stopButton.addEventListener("click", () => endGame(true));
+
+    pauseButton.addEventListener("click", () => {
+      paused = true;
+      updateUI();
+      bgMusic.pause();
+    });
+
+    continueButton.addEventListener("click", () => {
+      paused = false;
+      updateUI();
+      bgMusic.play();
+    });
+
+    highScoreBtn.addEventListener("click", () => {
+      alert("🏆 High Score: " + getHighScore());
+    });
+
+    function updateUI() {
+      startButton.style.display = gameActive ? "none" : "inline-block";
+      pauseButton.style.display = gameActive && !paused ? "inline-block" : "none";
+      continueButton.style.display = paused ? "inline-block" : "none";
+      restartButton.style.display = gameActive ? "inline-block" : "none";
+      button.style.display = gameActive && !paused ? "inline-block" : "none";
+      customMenu.style.display = gameActive ? "none" : "block";
+    }
+
+    // Initial UI update
+    updateUI();
   </script>
 </body>
 </html>
